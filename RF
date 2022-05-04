@@ -17,8 +17,8 @@ fitControl <- trainControl(method = "repeatedcv", ## indicate to do k-fold CV
 
 gbmFit1 <- train(Class ~ ., ## model specification: Predicting the outcome Class using all other preds
                  data = training, ## use the training+testing subset
-                 method = "gbm", ## indicate that we are building gradient boosted tree models[
-                 trControl = fitControl, ## indicate that we're using the CV configuration specified earlier
+                 method = "gbm", ## building gradient boosted tree models[
+                 trControl = fitControl, ## using the CV configuration specified earlier
                  verbose = FALSE ## indicate not wanting detailed output - to gbm()
                  ## n.cores = 4 ## parallelize code execution
                  )
