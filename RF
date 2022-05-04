@@ -1,0 +1,50 @@
+library(mlbench)
+data(Sonar)
+str(Sonar) ## view the structure
+
+library(caret)
+
+set.seed(1000) ## chosen arbitrarily; helps with replication across runs
+inTraining <- createDataPartition(Sonar$Class, ## indicate the outcome - helps in balancing the partitions
+                                  p = .75, ## proportion used in training+ testing subset
+                                  list = FALSE)
+training <- Sonar[ inTraining,]
+holdout  <- Sonar[-inTraining,]
+
+fitControl <- trainControl(method = "repeatedcv", ## indicate to do k-fold CV
+                           number = 10, ## k = 10
+                           repeats = 10) ## and repeat 10-fold CV 10 times
+
+gbmFit1 <- train(Class ~ ., ## model specification: Predicting the outcome Class using all other preds
+                 data = training, ## use the training+testing subset
+                 method = "gbm", ## indicate that we are building gradient boosted tree models[
+                 trControl = fitControl, ## indicate that we're using the CV configuration specified earlier
+                 verbose = FALSE ## indicate not wanting detailed output - to gbm()
+                 ## n.cores = 4 ## parallelize code execution
+                 )
+gbmFit1
+
+set.seed (2356)
+gbmGrid <-  expand.grid(interaction.depth = c(1, 5, 9), 
+                        n.trees = (1:30)*50, 
+                        shrinkage = 0.1,
+                        n.minobsinnode = 20)
+
+nrow(gbmGrid)
+gbmGrid
+
+set.seed(2356)
+gbmFit2 <- train(Class ~ .,
+                 data = training, 
+                 method = "gbm", 
+                 trControl = fitControl, 
+                 verbose = FALSE, 
+                 tuneGrid = gbmGrid)
+gbmFit2
+
+summary(gbmFit2) ## produces a graph, too, as a side-effect[
+
+conf.matrix <- table(holdout$Class,
+                     predict(gbmFit2, newdata = holdout))
+pred.accuracy <- sum(diag(conf.matrix))/sum(conf.matrix) * 100
+pred.accuracy
